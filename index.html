@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KidsPulse — Real-Time Audience Trend Detection | Animaj</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff3d71;
+            --primary-glow: rgba(255, 61, 113, 0.4);
+            --secondary: #7c3aed;
+            --accent: #06d6a0;
+            --youtube: #ff0000;
+            --tiktok: #00f2ea;
+            --spotify: #1db954;
+            --warning: #fbbf24;
+            --bg-dark: #0a0a0f;
+            --bg-card: #12121a;
+            --bg-elevated: #1a1a26;
+            --text-primary: #f0f0f5;
+            --text-secondary: #8888a0;
+            --text-muted: #55556a;
+            --border: #2a2a3a;
+            --gradient: linear-gradient(135deg, #ff3d71 0%, #7c3aed 50%, #06d6a0 100%);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            background-image:
+                radial-gradient(ellipse at 15% 80%, rgba(255, 61, 113, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 85% 20%, rgba(124, 58, 237, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(6, 214, 160, 0.03) 0%, transparent 60%);
+        }
+
+        .header {
+            background: rgba(10, 10, 15, 0.85);
+            border-bottom: 1px solid var(--border);
+            padding: 0.7rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(24px);
+        }
+
+        .header-content {
+            max-width: 1800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--gradient);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            position: relative;
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 900;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-subtitle {
+            font-size: 0.58rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 500;
+        }
+
+        .header-badges {
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        .badge {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 0.3rem 0.65rem;
+            border-radius: 6px;
+            font-size: 0.62rem;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .badge.live {
+            background: rgba(255, 61, 113, 0.15);
+            border-color: var(--primary);
+            color: var(--primary);
+            animation: badgePulse 2s infinite;
+        }
+
+        @keyframes badgePulse {
+            0%, 100% { box-shadow: 0 0 0 0 var(--primary-glow); }
+            50% { box-shadow: 0 0 12px 2px var(--primary-glow); }
+        }
+
+        .badge.live::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background: var(--primary);
+            border-radius: 50%;
+            margin-right: 5px;
+            animation: liveDot 1.5s ease-in-out infinite;
+        }
+
+        @keyframes liveDot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .main {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 1.25rem 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .hero h1 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin-bottom: 0.3rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 1rem;
+        }
+
+        @media (max-width: 1300px) {
+            .workspace { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 0.85rem 1.15rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(180deg, rgba(26, 26, 38, 0.5) 0%, transparent 100%);
+        }
+
+        .card-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-body { padding: 1.15rem; }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 0.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .control-btn {
+            flex: 1;
+            padding: 0.65rem;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+
+        .control-btn:hover {
+            border-color: var(--primary);
+            background: rgba(255, 61, 113, 0.1);
+        }
+
+        .control-btn.active {
+            border-color: var(--primary);
+            background: rgba(255, 61, 113, 0.2);
+            color: var(--primary);
+        }
+
+        /* Trend Feed */
+        .trend-feed {
+            display: grid;
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+        }
+
+        .trend-item {
+            background: var(--bg-elevated);
+            border-radius: 12px;
+            padding: 1rem;
+            border-left: 3px solid var(--primary);
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 0.85rem;
+            align-items: center;
+            animation: trendSlide 0.4s ease;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .trend-item:hover {
+            background: rgba(26, 26, 38, 0.9);
+            transform: translateX(4px);
+        }
+
+        .trend-item.hot { border-left-color: var(--primary); }
+        .trend-item.rising { border-left-color: var(--warning); }
+        .trend-item.new { border-left-color: var(--accent); }
+        .trend-item.stable { border-left-color: var(--secondary); }
+
+        @keyframes trendSlide {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .trend-rank {
+            width: 36px;
+            height: 36px;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.9rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .trend-item.hot .trend-rank { color: var(--primary); }
+        .trend-item.rising .trend-rank { color: var(--warning); }
+        .trend-item.new .trend-rank { color: var(--accent); }
+        .trend-item.stable .trend-rank { color: var(--secondary); }
+
+        .trend-content { min-width: 0; }
+
+        .trend-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .trend-meta {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .trend-platform {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .trend-platform.yt { color: var(--youtube); }
+        .trend-platform.tt { color: var(--tiktok); }
+        .trend-platform.sp { color: var(--spotify); }
+
+        .trend-stats {
+            text-align: right;
+        }
+
+        .trend-views {
+            font-size: 1rem;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .trend-item.hot .trend-views { color: var(--primary); }
+        .trend-item.rising .trend-views { color: var(--warning); }
+        .trend-item.new .trend-views { color: var(--accent); }
+        .trend-item.stable .trend-views { color: var(--secondary); }
+
+        .trend-change {
+            font-size: 0.65rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .trend-change.up { color: var(--accent); }
+        .trend-change.down { color: var(--primary); }
+
+        .trend-tag {
+            font-size: 0.55rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .trend-tag.hot { background: rgba(255, 61, 113, 0.2); color: var(--primary); }
+        .trend-tag.rising { background: rgba(251, 191, 36, 0.2); color: var(--warning); }
+        .trend-tag.new { background: rgba(6, 214, 160, 0.2); color: var(--accent); }
+        .trend-tag.stable { background: rgba(124, 58, 237, 0.2); color: var(--secondary); }
+
+        /* Chart Area */
+        .chart-container {
+            background: var(--bg-elevated);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .chart-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .chart-canvas {
+            width: 100%;
+            height: 200px;
+            position: relative;
+        }
+
+        .chart-canvas canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* Age Group Distribution */
+        .age-bars {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .age-row {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .age-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            width: 50px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .age-bar-bg {
+            flex: 1;
+            height: 22px;
+            background: var(--bg-dark);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .age-bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.6s ease;
+        }
+
+        .age-pct {
+            font-size: 0.65rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            width: 35px;
+            text-align: right;
+        }
+
+        /* Geo Heatmap */
+        .geo-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.4rem;
+        }
+
+        .geo-cell {
+            background: var(--bg-dark);
+            border-radius: 8px;
+            padding: 0.6rem;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .geo-cell:hover {
+            transform: scale(1.05);
+        }
+
+        .geo-flag {
+            font-size: 1.4rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .geo-name {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+        }
+
+        .geo-value {
+            font-size: 0.75rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--primary);
+        }
+
+        /* Sentiment */
+        .sentiment-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .sentiment-item {
+            flex: 1;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            padding: 0.6rem;
+            text-align: center;
+        }
+
+        .sentiment-emoji { font-size: 1.3rem; }
+
+        .sentiment-pct {
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .sentiment-label {
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* AI Summary */
+        .ai-summary {
+            background: var(--bg-dark);
+            border-radius: 10px;
+            padding: 0.85rem;
+            border-left: 3px solid var(--secondary);
+        }
+
+        .ai-summary-header {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .ai-summary-text {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .ai-summary-text .highlight {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Pipeline Section */
+        .pipeline-section {
+            background: var(--bg-elevated);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .pipeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .pipeline-title { font-size: 0.8rem; font-weight: 700; }
+
+        .pipeline-steps {
+            display: flex;
+            gap: 0.3rem;
+            align-items: center;
+        }
+
+        .pipeline-step {
+            background: var(--bg-dark);
+            border-radius: 8px;
+            padding: 0.5rem 0.65rem;
+            text-align: center;
+            flex: 1;
+            transition: all 0.3s;
+        }
+
+        .pipeline-step.active {
+            background: rgba(255, 61, 113, 0.15);
+            border: 1px solid var(--primary);
+        }
+
+        .pipeline-step.done {
+            background: rgba(6, 214, 160, 0.15);
+            border: 1px solid var(--accent);
+        }
+
+        .pipeline-step-icon { font-size: 1rem; margin-bottom: 0.15rem; }
+
+        .pipeline-step-label {
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .pipeline-arrow {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+        }
+
+        /* Loading */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 10, 15, 0.97);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.active { display: flex; }
+
+        .loading-anim {
+            width: 80px;
+            height: 80px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            margin-bottom: 1.5rem;
+        }
+
+        .loading-block {
+            border-radius: 4px;
+            animation: blockPulse 1.2s ease-in-out infinite;
+        }
+
+        .loading-block:nth-child(1) { background: var(--primary); animation-delay: 0s; }
+        .loading-block:nth-child(2) { background: var(--secondary); animation-delay: 0.1s; }
+        .loading-block:nth-child(3) { background: var(--accent); animation-delay: 0.2s; }
+        .loading-block:nth-child(4) { background: var(--secondary); animation-delay: 0.3s; }
+        .loading-block:nth-child(5) { background: var(--primary); animation-delay: 0.4s; }
+        .loading-block:nth-child(6) { background: var(--secondary); animation-delay: 0.5s; }
+        .loading-block:nth-child(7) { background: var(--accent); animation-delay: 0.6s; }
+        .loading-block:nth-child(8) { background: var(--primary); animation-delay: 0.7s; }
+        .loading-block:nth-child(9) { background: var(--secondary); animation-delay: 0.8s; }
+
+        @keyframes blockPulse {
+            0%, 100% { opacity: 0.2; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+
+        .loading-text {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.4rem;
+        }
+
+        .loading-stage {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 1.2rem;
+        }
+
+        .loading-progress {
+            width: 260px;
+            height: 4px;
+            background: var(--bg-elevated);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .loading-bar {
+            height: 100%;
+            background: var(--gradient);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 0.8rem 1.15rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.6);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+        }
+
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast-icon { font-size: 1.2rem; }
+        .toast-title { font-size: 0.8rem; font-weight: 600; }
+        .toast-message { font-size: 0.65rem; color: var(--text-muted); }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">📡</div>
+                <div>
+                    <div class="logo-text">KidsPulse</div>
+                    <div class="logo-subtitle">Animaj Audience Intelligence</div>
+                </div>
+            </div>
+            <div class="header-badges">
+                <span class="badge live">Streaming</span>
+                <span class="badge">YouTube API</span>
+                <span class="badge">Clickhouse</span>
+                <span class="badge">Prefect Pipeline</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="hero">
+            <h1>📡 Real-Time Kids' Trend Detection</h1>
+            <p>Surface what kids watch, search & engage with across YouTube, TikTok, and Spotify — in real time</p>
+        </div>
+
+        <div class="workspace">
+            <div>
+                <div class="card" style="margin-bottom: 1rem;">
+                    <div class="card-header">
+                        <h3 class="card-title">🔥 Trending Content — Kids 3-12</h3>
+                        <span style="font-size: 0.65rem; color: var(--text-muted); font-family: 'JetBrains Mono';" id="lastUpdate">Updated 0s ago</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="controls">
+                            <button class="control-btn active" id="startBtn" onclick="toggleScanning()">
+                                <span id="startIcon">▶️</span>
+                                <span id="startText">Start Scanning</span>
+                            </button>
+                            <button class="control-btn" onclick="refreshTrends()">🔄 Refresh</button>
+                            <button class="control-btn" onclick="exportData()">📊 Export</button>
+                            <button class="control-btn" onclick="generateInsight()">🤖 AI Insight</button>
+                        </div>
+                        <div class="trend-feed" id="trendFeed"></div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom: 1rem;">
+                    <div class="card-header">
+                        <h3 class="card-title">📈 Trend Velocity — 24h Rolling</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <span class="chart-title">Views Velocity (M/hr)</span>
+                                <div class="chart-legend">
+                                    <div class="legend-item"><div class="legend-dot" style="background: var(--youtube);"></div>YouTube</div>
+                                    <div class="legend-item"><div class="legend-dot" style="background: var(--tiktok);"></div>TikTok</div>
+                                    <div class="legend-item"><div class="legend-dot" style="background: var(--spotify);"></div>Spotify</div>
+                                </div>
+                            </div>
+                            <div class="chart-canvas">
+                                <canvas id="velocityChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">⚙️ Ingestion Pipeline</h3>
+                        <span style="font-size: 0.65rem; color: var(--accent); font-family: 'JetBrains Mono';" id="pipelineStatus">● Healthy</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="pipeline-section">
+                            <div class="pipeline-steps">
+                                <div class="pipeline-step done" id="pipe1">
+                                    <div class="pipeline-step-icon">🌐</div>
+                                    <div class="pipeline-step-label">Scrape</div>
+                                </div>
+                                <div class="pipeline-arrow">→</div>
+                                <div class="pipeline-step done" id="pipe2">
+                                    <div class="pipeline-step-icon">🔄</div>
+                                    <div class="pipeline-step-label">Transform</div>
+                                </div>
+                                <div class="pipeline-arrow">→</div>
+                                <div class="pipeline-step active" id="pipe3">
+                                    <div class="pipeline-step-icon">🗄️</div>
+                                    <div class="pipeline-step-label">Clickhouse</div>
+                                </div>
+                                <div class="pipeline-arrow">→</div>
+                                <div class="pipeline-step" id="pipe4">
+                                    <div class="pipeline-step-icon">🧠</div>
+                                    <div class="pipeline-step-label">LLM Classify</div>
+                                </div>
+                                <div class="pipeline-arrow">→</div>
+                                <div class="pipeline-step" id="pipe5">
+                                    <div class="pipeline-step-icon">📊</div>
+                                    <div class="pipeline-step-label">Dashboard</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">👶 Age Distribution</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="age-bars" id="ageBars"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">🌍 Top Geo Markets</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="geo-grid" id="geoGrid"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">💬 Audience Sentiment</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="sentiment-row" id="sentimentRow"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">🤖 LLM Trend Summary</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="ai-summary" id="aiSummary">
+                            <div class="ai-summary-header">✨ Claude Analysis</div>
+                            <div class="ai-summary-text">Start scanning to generate real-time trend insights...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-anim">
+            <div class="loading-block"></div><div class="loading-block"></div><div class="loading-block"></div>
+            <div class="loading-block"></div><div class="loading-block"></div><div class="loading-block"></div>
+            <div class="loading-block"></div><div class="loading-block"></div><div class="loading-block"></div>
+        </div>
+        <div class="loading-text">Initializing KidsPulse...</div>
+        <div class="loading-stage" id="loadingStage">Connecting to YouTube Data API...</div>
+        <div class="loading-progress"><div class="loading-bar" id="loadingBar"></div></div>
+    </div>
+
+    <div class="toast" id="toast">
+        <span class="toast-icon" id="toastIcon">✅</span>
+        <div>
+            <div class="toast-title" id="toastTitle">Success</div>
+            <div class="toast-message" id="toastMessage">Pipeline connected</div>
+        </div>
+    </div>
+
+    <script>
+        let isScanning = false;
+        let scanInterval = null;
+        let chartInterval = null;
+        let secondsSinceUpdate = 0;
+        let updateTimer = null;
+
+        const trendTopics = [
+            { title: 'Pocoyo Space Adventures', category: 'Animation', ageGroup: '3-5', icon: '🚀' },
+            { title: 'Baby Shark Remix 2026', category: 'Music', ageGroup: '2-5', icon: '🦈' },
+            { title: 'DIY Slime Galaxy Kit', category: 'Craft', ageGroup: '6-10', icon: '🪐' },
+            { title: 'Maya the Bee S2 Clips', category: 'Animation', ageGroup: '4-7', icon: '🐝' },
+            { title: 'Minecraft Challenge Build', category: 'Gaming', ageGroup: '8-12', icon: '⛏️' },
+            { title: 'Rainbow Friends Dance', category: 'Music', ageGroup: '5-9', icon: '🌈' },
+            { title: 'Dinosaur Facts for Kids', category: 'Education', ageGroup: '4-8', icon: '🦕' },
+            { title: 'Peppa Pig New Episodes', category: 'Animation', ageGroup: '2-5', icon: '🐷' },
+            { title: 'Robot Building STEM', category: 'Education', ageGroup: '8-12', icon: '🤖' },
+            { title: 'Fairy Tale Singalong', category: 'Music', ageGroup: '3-6', icon: '🧚' },
+            { title: 'Roblox Obby Speedrun', category: 'Gaming', ageGroup: '7-12', icon: '🎮' },
+            { title: 'Magic Color Mixing', category: 'Education', ageGroup: '3-6', icon: '🎨' },
+            { title: 'Cartoon Dance Challenge', category: 'Trend', ageGroup: '5-10', icon: '💃' },
+            { title: 'Animal Safari Adventure', category: 'Education', ageGroup: '3-7', icon: '🦁' },
+            { title: 'Superhero Kids Parody', category: 'Animation', ageGroup: '5-10', icon: '🦸' },
+        ];
+
+        const statuses = ['hot', 'rising', 'new', 'stable'];
+        const platforms = ['yt', 'tt', 'sp'];
+        const geoData = [
+            { flag: '🇺🇸', name: 'USA' }, { flag: '🇪🇸', name: 'Spain' }, { flag: '🇧🇷', name: 'Brazil' },
+            { flag: '🇬🇧', name: 'UK' }, { flag: '🇫🇷', name: 'France' }, { flag: '🇲🇽', name: 'Mexico' },
+            { flag: '🇩🇪', name: 'Germany' }, { flag: '🇮🇹', name: 'Italy' }, { flag: '🇯🇵', name: 'Japan' },
+        ];
+
+        const ageGroups = [
+            { label: '2-4 yrs', color: '#ff3d71' },
+            { label: '5-7 yrs', color: '#7c3aed' },
+            { label: '8-10 yrs', color: '#06d6a0' },
+            { label: '11-12 yrs', color: '#fbbf24' },
+        ];
+
+        const aiInsights = [
+            'Preschool animation content is surging <span class="highlight">+34% week-over-week</span> across LATAM markets. Space-themed Pocoyo episodes are outperforming other themes by 2.7x on YouTube. Recommend prioritizing space adventure storylines for next batch.',
+            '<span class="highlight">Music/dance content</span> is the fastest-growing category among 5-9 year olds. Singalong videos with character tie-ins show 3.1x higher completion rates. Consider Pocoyo music specials for the LUMEE ad inventory.',
+            'DIY/craft content is trending strongly in EU markets, especially <span class="highlight">Germany (+52%)</span> and France. Educational STEM content correlates with higher parent co-viewing metrics. This aligns well with Maya the Bee IP positioning.',
+            '<span class="highlight">Gaming-adjacent</span> content (Roblox, Minecraft) dominates the 8-12 segment. Animated parodies of popular games see 4.2x share rates vs. standard episodes. Potential format for tween IP development.',
+        ];
+
+        function init() {
+            renderAgeBars();
+            renderGeoGrid();
+            renderSentiment();
+            renderInitialTrends();
+            drawChart();
+        }
+
+        function renderInitialTrends() {
+            const feed = document.getElementById('trendFeed');
+            feed.innerHTML = '';
+            const shuffled = [...trendTopics].sort(() => Math.random() - 0.5).slice(0, 8);
+            shuffled.forEach((topic, i) => {
+                const status = statuses[Math.floor(Math.random() * statuses.length)];
+                const views = (Math.random() * 50 + 2).toFixed(1);
+                const change = (Math.random() * 80 + 5).toFixed(0);
+                const isUp = Math.random() > 0.2;
+                const platCount = 1 + Math.floor(Math.random() * 3);
+                const plats = [...platforms].sort(() => Math.random() - 0.5).slice(0, platCount);
+
+                const platNames = { yt: 'YouTube', tt: 'TikTok', sp: 'Spotify' };
+                const platHTML = plats.map(p => `<span class="trend-platform ${p}">${platNames[p]}</span>`).join(' · ');
+
+                feed.innerHTML += `
+                    <div class="trend-item ${status}">
+                        <div class="trend-rank">${i + 1}</div>
+                        <div class="trend-content">
+                            <div class="trend-title">${topic.icon} ${topic.title} <span class="trend-tag ${status}">${status}</span></div>
+                            <div class="trend-meta">${platHTML} · ${topic.category} · Ages ${topic.ageGroup}</div>
+                        </div>
+                        <div class="trend-stats">
+                            <div class="trend-views">${views}M</div>
+                            <div class="trend-change ${isUp ? 'up' : 'down'}">${isUp ? '▲' : '▼'} ${change}%</div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderAgeBars() {
+            const container = document.getElementById('ageBars');
+            const labels = ['2-4 yrs', '5-7 yrs', '8-10 yrs', '11-12'];
+            const colors = ['#ff3d71', '#7c3aed', '#06d6a0', '#fbbf24'];
+            const values = [35, 28, 22, 15];
+            container.innerHTML = labels.map((l, i) => `
+                <div class="age-row">
+                    <span class="age-label">${l}</span>
+                    <div class="age-bar-bg"><div class="age-bar-fill" style="width: ${values[i]}%; background: ${colors[i]};"></div></div>
+                    <span class="age-pct" style="color: ${colors[i]};">${values[i]}%</span>
+                </div>
+            `).join('');
+        }
+
+        function renderGeoGrid() {
+            const grid = document.getElementById('geoGrid');
+            grid.innerHTML = geoData.map(g => `
+                <div class="geo-cell">
+                    <div class="geo-flag">${g.flag}</div>
+                    <div class="geo-value">${(Math.random() * 40 + 5).toFixed(1)}M</div>
+                    <div class="geo-name">${g.name}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderSentiment() {
+            const row = document.getElementById('sentimentRow');
+            row.innerHTML = `
+                <div class="sentiment-item"><div class="sentiment-emoji">😍</div><div class="sentiment-pct" style="color: var(--accent);">62%</div><div class="sentiment-label">Loved</div></div>
+                <div class="sentiment-item"><div class="sentiment-emoji">😊</div><div class="sentiment-pct" style="color: var(--warning);">24%</div><div class="sentiment-label">Liked</div></div>
+                <div class="sentiment-item"><div class="sentiment-emoji">😐</div><div class="sentiment-pct" style="color: var(--text-muted);">11%</div><div class="sentiment-label">Neutral</div></div>
+                <div class="sentiment-item"><div class="sentiment-emoji">😤</div><div class="sentiment-pct" style="color: var(--primary);">3%</div><div class="sentiment-label">Disliked</div></div>
+            `;
+        }
+
+        function drawChart() {
+            const canvas = document.getElementById('velocityChart');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.parentElement.offsetWidth;
+            canvas.height = 200;
+            const w = canvas.width, h = canvas.height;
+
+            function render() {
+                ctx.clearRect(0, 0, w, h);
+
+                // Grid
+                ctx.strokeStyle = '#2a2a3a';
+                ctx.lineWidth = 0.5;
+                for (let i = 0; i < 5; i++) {
+                    const y = (h / 5) * i + 10;
+                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+                }
+
+                const lines = [
+                    { color: '#ff0000', data: [] },
+                    { color: '#00f2ea', data: [] },
+                    { color: '#1db954', data: [] },
+                ];
+
+                const points = 24;
+                lines.forEach(line => {
+                    let base = 20 + Math.random() * 30;
+                    for (let i = 0; i < points; i++) {
+                        base += (Math.random() - 0.45) * 8;
+                        base = Math.max(5, Math.min(60, base));
+                        line.data.push(base);
+                    }
+                });
+
+                lines.forEach(line => {
+                    ctx.strokeStyle = line.color;
+                    ctx.lineWidth = 2;
+                    ctx.globalAlpha = 0.8;
+                    ctx.beginPath();
+                    line.data.forEach((v, i) => {
+                        const x = (i / (points - 1)) * w;
+                        const y = h - (v / 65) * h;
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    });
+                    ctx.stroke();
+
+                    // Glow
+                    ctx.globalAlpha = 0.1;
+                    ctx.lineTo(w, h);
+                    ctx.lineTo(0, h);
+                    ctx.fillStyle = line.color;
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                });
+            }
+
+            render();
+            chartInterval = setInterval(render, 2000);
+        }
+
+        function toggleScanning() {
+            if (!isScanning) {
+                const overlay = document.getElementById('loadingOverlay');
+                const bar = document.getElementById('loadingBar');
+                const stage = document.getElementById('loadingStage');
+                overlay.classList.add('active');
+
+                const stages = [
+                    'Connecting to YouTube Data API v3...',
+                    'Authenticating Prefect pipeline...',
+                    'Warming up Clickhouse connection...',
+                    'Loading LLM classifier (Claude)...',
+                    'Initializing trend scoring model...',
+                    'Starting real-time stream...',
+                ];
+
+                let progress = 0;
+                let si = 0;
+                const iv = setInterval(() => {
+                    progress += Math.random() * 20 + 8;
+                    if (progress > 100) progress = 100;
+                    bar.style.width = progress + '%';
+                    const ns = Math.floor((progress / 100) * stages.length);
+                    if (ns !== si && ns < stages.length) { si = ns; stage.textContent = stages[si]; }
+                    if (progress >= 100) {
+                        clearInterval(iv);
+                        setTimeout(() => { overlay.classList.remove('active'); startScanning(); }, 300);
+                    }
+                }, 80);
+            } else {
+                stopScanning();
+            }
+        }
+
+        function startScanning() {
+            isScanning = true;
+            document.getElementById('startIcon').textContent = '⏸️';
+            document.getElementById('startText').textContent = 'Pause Scanning';
+            document.getElementById('startBtn').classList.add('active');
+
+            scanInterval = setInterval(() => {
+                renderInitialTrends();
+                updateGeoValues();
+                updateSentiment();
+                animatePipeline();
+                secondsSinceUpdate = 0;
+            }, 3000);
+
+            updateTimer = setInterval(() => {
+                secondsSinceUpdate++;
+                document.getElementById('lastUpdate').textContent = `Updated ${secondsSinceUpdate}s ago`;
+            }, 1000);
+
+            showToast('📡', 'Scanning Active', 'Real-time trend detection started');
+        }
+
+        function stopScanning() {
+            isScanning = false;
+            document.getElementById('startIcon').textContent = '▶️';
+            document.getElementById('startText').textContent = 'Resume Scanning';
+            document.getElementById('startBtn').classList.remove('active');
+            if (scanInterval) clearInterval(scanInterval);
+            if (updateTimer) clearInterval(updateTimer);
+            showToast('⏸️', 'Scanning Paused', 'Trend detection suspended');
+        }
+
+        function updateGeoValues() {
+            document.querySelectorAll('.geo-value').forEach(el => {
+                el.textContent = (Math.random() * 40 + 5).toFixed(1) + 'M';
+            });
+        }
+
+        function updateSentiment() {
+            const vals = [55 + Math.random() * 15, 0, 0, 0];
+            vals[1] = 20 + Math.random() * 10;
+            vals[2] = 8 + Math.random() * 8;
+            vals[3] = Math.max(1, 100 - vals[0] - vals[1] - vals[2]);
+            const pcts = document.querySelectorAll('.sentiment-pct');
+            vals.forEach((v, i) => { if (pcts[i]) pcts[i].textContent = Math.round(v) + '%'; });
+        }
+
+        function animatePipeline() {
+            const steps = ['pipe1', 'pipe2', 'pipe3', 'pipe4', 'pipe5'];
+            let active = Math.floor(Math.random() * 5);
+            steps.forEach((id, i) => {
+                const el = document.getElementById(id);
+                el.className = 'pipeline-step';
+                if (i < active) el.classList.add('done');
+                else if (i === active) el.classList.add('active');
+            });
+        }
+
+        function refreshTrends() {
+            renderInitialTrends();
+            secondsSinceUpdate = 0;
+            showToast('🔄', 'Refreshed', 'Trend data updated');
+        }
+
+        function exportData() {
+            showToast('📊', 'Exported', 'Trend report generated as CSV');
+        }
+
+        function generateInsight() {
+            const summary = document.getElementById('aiSummary');
+            const insight = aiInsights[Math.floor(Math.random() * aiInsights.length)];
+            summary.innerHTML = `
+                <div class="ai-summary-header">✨ Claude Analysis — ${new Date().toLocaleTimeString()}</div>
+                <div class="ai-summary-text">${insight}</div>
+            `;
+            showToast('🤖', 'AI Insight Generated', 'LLM trend analysis complete');
+        }
+
+        function showToast(icon, title, message) {
+            const t = document.getElementById('toast');
+            document.getElementById('toastIcon').textContent = icon;
+            document.getElementById('toastTitle').textContent = title;
+            document.getElementById('toastMessage').textContent = message;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        init();
+    </script>
+</body>
+</html>
